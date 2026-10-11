@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UrbanTwinAI | Live Traffic</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brandmark">UT</div>
+    <div>
+      <h1>UrbanTwin<span>AI</span></h1>
+      <p>SMART TRAFFIC DIGITAL TWIN</p>
+    </div>
+    <div class="top-right"><span class="pulse"></span> LOCAL PROTOTYPE <span id="clock">--:--:--</span></div>
+  </header>
+
+  <main class="layout">
+    <section class="page-heading">
+      <div>
+        <p class="eyebrow">TRAFFIC OPERATIONS / DEMO CITY</p>
+        <h2>Live City Traffic Monitor</h2>
+        <p class="muted">Camera-based lane monitoring with adaptive signal recommendations.</p>
+      </div>
+      <div class="mode-pill"><span class="pulse"></span> SIMULATION MODE</div>
+    </section>
+
+    <section class="stats-grid">
+      <article class="stat-card"><div class="stat-label">Vehicles detected <span>◉</span></div><div class="stat-value" id="total">0</div><div class="stat-foot">Visible in webcam frame</div></article>
+      <article class="stat-card"><div class="stat-label">Congestion level <span>▥</span></div><div class="stat-value" id="congestion">LOW</div><div class="stat-foot" id="congestion-note">Based on lane counts</div></article>
+      <article class="stat-card"><div class="stat-label">Recommended green <span>◷</span></div><div class="stat-value"><span id="green-seconds">15</span><small> sec</small></div><div class="stat-foot">For <b id="signal-lane">Lane A</b></div></article>
+      <article class="stat-card"><div class="stat-label">Camera processing <span>⌁</span></div><div class="stat-value"><span id="fps">0</span><small> FPS</small></div><div class="stat-foot" id="camera-status">Starting camera…</div></article>
+    </section>
+
+    <section class="main-grid">
+      <article class="panel camera-panel">
+        <div class="panel-header"><div><h3>Live camera feed</h3><p>Vehicle detection and lane assignment</p></div><span class="live-tag"><i></i> LIVE</span></div>
+        <div class="camera-frame"><img src="/video_feed" alt="Live webcam with vehicle detection overlays" onerror="this.style.display='none';document.getElementById('camera-placeholder').style.display='grid'"><div id="camera-placeholder" class="camera-placeholder">Waiting for camera feed…<small>Connect a webcam and restart the backend.</small></div></div>
+        <div class="camera-legend"><span><i class="dot green"></i> Lane A · left half</span><span><i class="dot amber"></i> Lane B · right half</span></div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-header"><div><h3>Lane analytics</h3><p>Live count and density classification</p></div><span class="tiny-label">THRESHOLD ≥ 5</span></div>
+        <div class="lane-card lane-a"><div class="lane-title"><span class="lane-icon">A</span><div><b>Lane A</b><small>Left camera region</small></div><span class="density-badge" id="density-a">LOW</span></div><div class="lane-count"><strong id="count-a">0</strong><span>vehicles</span></div><div class="meter"><div id="bar-a"></div></div></div>
+        <div class="lane-card lane-b"><div class="lane-title"><span class="lane-icon amber">B</span><div><b>Lane B</b><small>Right camera region</small></div><span class="density-badge" id="density-b">LOW</span></div><div class="lane-count"><strong id="count-b">0</strong><span>vehicles</span></div><div class="meter"><div id="bar-b"></div></div></div>
+        <div class="signal-box"><div><b>ESP32 signal controller</b><small id="esp-status">Not configured</small></div><span class="signal-indicator" id="signal-indicator"></span></div>
+      </article>
+    </section>
+
+    <section class="main-grid lower-grid">
+      <article class="panel map-panel">
+        <div class="panel-header"><div><h3>Digital twin · road network</h3><p>Illustrative city routes — not live city traffic</p></div><span class="tiny-label">SIMULATED MAP</span></div>
+        <div class="city-map">
+          <svg viewBox="0 0 700 300" role="img" aria-label="Simulated road network with main and alternative routes">
+            <defs><pattern id="grid" width="25" height="25" patternUnits="userSpaceOnUse"><path d="M 25 0 L 0 0 0 25" fill="none" stroke="#1f3040" stroke-width="1"/></pattern></defs>
+            <rect width="700" height="300" fill="url(#grid)"/>
+            <path class="road" d="M55 240 L190 190 L330 145 L470 95 L640 48"/>
+            <path class="road" d="M55 240 L190 95 L340 75 L470 95"/>
+            <path class="road" d="M190 190 L245 260 L430 245 L560 185 L640 48"/>
+            <path class="route main-route" id="route-main" d="M55 240 L190 190 L330 145 L470 95 L640 48"/>
+            <path class="route alt-route" id="route-alt" d="M55 240 L190 95 L340 75 L470 95 L640 48"/>
+            <g class="map-node"><circle cx="55" cy="240" r="7"/><text x="30" y="270">START</text></g>
+            <g class="map-node"><circle cx="190" cy="190" r="7"/><text x="155" y="218">Central</text></g>
+            <g class="map-node"><circle cx="190" cy="95" r="7"/><text x="160" y="76">Riverside</text></g>
+            <g class="map-node"><circle cx="340" cy="75" r="7"/><text x="310" y="54">Market</text></g>
+            <g class="map-node"><circle cx="470" cy="95" r="7"/><text x="450" y="123">Junction</text></g>
+            <g class="map-node"><circle cx="640" cy="48" r="7"/><text x="585" y="28">DESTINATION</text></g>
+          </svg>
+          <div class="map-key"><span><i class="dot red"></i> Congested route</span><span><i class="dot green"></i> Recommended alternative</span></div>
+        </div>
+      </article>
+
+      <article class="panel route-panel">
+        <div class="panel-header"><div><h3>Route recommendations</h3><p>Estimated travel time from simulated road costs</p></div></div>
+        <div id="routes"><div class="route-item"><div class="route-rank">1</div><div class="route-copy"><b>Calculating route…</b><small>Waiting for traffic data</small></div></div></div>
+        <div class="eta-summary"><span>Recommended ETA</span><strong id="eta">-- min</strong></div>
+        <p class="disclaimer">ETA is illustrative. A real city deployment needs a real road graph and live traffic data.</p>
+      </article>
+    </section>
+
+    <section class="footer-grid">
+      <article class="panel"><div class="panel-header"><div><h3>Signal plan</h3><p>Controller recommendation; firmware handles safe transitions</p></div></div><div class="signal-plan"><div class="mini-signal"><i id="lamp-a-r"></i><i id="lamp-a-y"></i><i id="lamp-a-g"></i></div><div class="signal-plan-copy"><b>Lane A</b><small id="plan-a">Waiting for data</small></div><div class="mini-signal"><i id="lamp-b-r"></i><i id="lamp-b-y"></i><i id="lamp-b-g"></i></div><div class="signal-plan-copy"><b>Lane B</b><small id="plan-b">Waiting for data</small></div></div></article>
+      <article class="panel"><div class="panel-header"><div><h3>AI model pipeline</h3><p>Development roadmap</p></div></div><div class="roadmap"><div class="roadmap-row done"><span>1</span><div><b>Vehicle detection</b><small>YOLO + OpenCV</small></div><em>ACTIVE</em></div><div class="roadmap-row"><span>2</span><div><b>Vision Transformer</b><small>Visual scene features</small></div><em>STAGE 2</em></div><div class="roadmap-row"><span>3</span><div><b>Graph Neural Network</b><small>Road network prediction</small></div><em>STAGE 2</em></div></div></article>
+    </section>
+    <footer>UrbanTwinAI prototype · Camera counts are frame-visible estimates · <span id="updated">Waiting for update</span></footer>
+  </main>
+  <script src="/static/script.js"></script>
+</body>
+</html>

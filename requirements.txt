@@ -1,0 +1,8 @@
+flask>=3.0
+opencv-python>=4.9
+ultralytics>=8.3
+pyserial>=3.5
+pygrabber>=0.2
+networkx>=3.2
+numpy>=1.26
+requests>=2.31
