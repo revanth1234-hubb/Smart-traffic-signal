@@ -3,8 +3,8 @@
 #include <WebServer.h>
 
 // Your mobile hotspot credentials
-const char* ssid = "YOUR_HOTSPOT_NAME";
-const char* password = "YOUR_HOTSPOT_PASSWORD";
+const char* ssid = "El Bicho";
+const char* password = "12121212";
 
 // Lane A LEDs
 const int A_RED = 16;
